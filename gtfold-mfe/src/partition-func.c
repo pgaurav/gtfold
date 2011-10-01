@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "partition-func.h"
 #include "energy.h"
 #include "algorithms-partition.h"
@@ -9,7 +11,7 @@
 #include "omp.h"
 #endif
 
-#define DEBUG_PF 1
+//#define DEBUG_PF 0
 
 #ifdef DEBUG_PF 
   #undef Ec
@@ -62,6 +64,58 @@ static void calc_s2(int i, int j);
 static void calc_s3(int i, int j);
 static double f(int j, int h, int l);
 
+static double get_u(int i, int j);
+static double get_ud(int i, int j);
+static double get_up(int i, int j);
+static double get_upm(int i, int j);
+static double get_u1(int i, int j);
+static double get_u1d(int i, int j);
+static double get_s1(int i, int j);
+static double get_s2(int i, int j);
+static double get_s3(int i, int j);
+
+
+static void set_u(int i, int j, double val);
+static void set_ud(int i, int j, double val);
+static void set_up(int i, int j, double val);
+static void set_upm(int i, int j, double val);
+static void set_u1(int i, int j, double val);
+static void set_u1d(int i, int j, double val);
+static void set_s1(int i, int j, double val);
+static void set_s2(int i, int j, double val);
+static void set_s3(int i, int j, double val);
+
+
+void errorAndExit(char* msg, int i, int j, double oldVal, double newVal){
+	printf(msg);
+	printf("i=%d,j=%d,oldVal=%0.1f,newVal=%0.1f\n",i,j,oldVal,newVal);
+	printf("\nprogram is exiting now due to above error\n");
+	exit(-1);
+}
+
+double get_u(int i, int j) {if(u[i][j]==-1) errorAndExit("get_u entry is -1.",i,j,-1,0); return u[i][j];}
+double get_ud(int i, int j) {if(ud[i][j]==-1) errorAndExit("get_ud entry is -1.\n",i,j,-1,0); return ud[i][j];}
+double get_up(int i, int j) {if(up[i][j]==-1) errorAndExit("get_up entry is -1.\n",i,j,-1,0); return up[i][j];}
+double get_upm(int i, int j) {if(upm[i][j]==-1) errorAndExit("get_upm entry is -1.\n",i,j,-1,0); return upm[i][j];}
+double get_u1(int i, int j) {if(u1[i][j]==-1) errorAndExit("get_u1 entry is -1.\n",i,j,-1,0); return u1[i][j];}
+double get_u1d(int i, int j) {if(u1d[i][j]==-1) errorAndExit("get_u1d entry is -1.\n",i,j,-1,0); return u1d[i][j];}
+double get_s1(int i, int j) {if(s1[i][j]==-1) errorAndExit("get_s1 entry is -1.\n",i,j,-1,0); return s1[i][j];}
+double get_s2(int i, int j) {if(s2[i][j]==-1) errorAndExit("get_s2 entry is -1.\n",i,j,-1,0); return s2[i][j];}
+double get_s3(int i, int j) {if(s3[i][j]==-1) errorAndExit("get_s3 entry is -1.\n",i,j,-1,0); return s3[i][j];}
+
+
+void set_u(int i, int j, double val) {if(u[i][j]!=-1 && u[i][j]!=val) errorAndExit("set_u entry is not -1.\n",i,j,u[i][j],val); u[i][j]=val;}
+void set_ud(int i, int j, double val) {if(ud[i][j]!=-1 && ud[i][j]!=val) errorAndExit("set_ud entry is not -1.\n",i,j,ud[i][j],val); ud[i][j]=val;}
+void set_up(int i, int j, double val) {if(up[i][j]!=-1 && up[i][j]!=val) errorAndExit("set_up entry is not -1.\n",i,j,up[i][j],val); up[i][j]=val;}
+void set_upm(int i, int j, double val) {if(upm[i][j]!=-1 && upm[i][j]!=val) errorAndExit("set_upm entry is not -1.\n",i,j,upm[i][j],val); upm[i][j]=val;}
+void set_u1(int i, int j, double val) {if(u1[i][j]!=-1 && u1[i][j]!=val) errorAndExit("set_u1 entry is not -1.\n",i,j,u1[i][j],val); u1[i][j]=val;}
+void set_u1d(int i, int j, double val) {if(u1d[i][j]!=-1 && u1d[i][j]!=val) errorAndExit("set_u1d entry is not -1.\n",i,j,u1d[i][j],val); u1d[i][j]=val;}
+void set_s1(int i, int j, double val) {if(s1[i][j]!=-1 && s1[i][j]!=val) errorAndExit("set_s1 entry is not -1.\n",i,j,s1[i][j],val); s1[i][j]=val;}
+void set_s2(int i, int j, double val) {if(s2[i][j]!=-1 && s2[i][j]!=val) errorAndExit("set_s2 entry is not -1.\n",i,j,s2[i][j],val); s2[i][j]=val;}
+void set_s3(int i, int j, double val) {if(s3[i][j]!=-1 && s3[i][j]!=val) errorAndExit("set_s3 entry is not -1.\n",i,j,s3[i][j],val); s3[i][j]=val;}
+
+
+
 double f(int j, int h, int l){
 	if(j - 1 == l)
 		return 1;
@@ -69,6 +123,37 @@ double f(int j, int h, int l){
 		return exp(-Ed3(h,l,l+1)/RT);
 }
 
+void printMatrix(double** u, int part_len){
+  int i,j; 
+  for (i = 0; i <= part_len+1; ++i)
+  {
+    for (j = 0; j <= part_len+1; ++j)
+      printf("%0.1f ",u[i][j]);
+    printf("\n");
+  }
+}
+
+void printAllMatrixes(){
+  printf("\n\nAfter calculation, u matrix:\n\n");
+  printMatrix(u,part_len);
+  printf("\n\nAfter calculation, ud matrix:\n\n");
+  printMatrix(ud,part_len);
+  printf("\n\nAfter calculation, up matrix:\n\n");
+  printMatrix(up,part_len);
+  printf("\n\nAfter calculation, upm matrix:\n\n");
+  printMatrix(upm,part_len);
+printf("\n\nAfter calculation, u1 matrix:\n\n");
+  printMatrix(u1,part_len);
+printf("\n\nAfter calculation, u1d matrix:\n\n");
+  printMatrix(u1d,part_len);
+printf("\n\nAfter calculation, s1 matrix:\n\n");
+  printMatrix(s1,part_len);
+printf("\n\nAfter calculation, s2 matrix:\n\n");
+  printMatrix(s2,part_len);
+printf("\n\nAfter calculation, s3 matrix:\n\n");
+  printMatrix(s3,part_len);
+
+}
 
 void calculate_partition(int len) 
 {
@@ -76,14 +161,20 @@ void calculate_partition(int len)
   part_len = len;
   create_partition_arrays();
   init_partition_arrays();
-  fill_partition_arrays();
 
-  for (i = 0; i <= part_len+1; ++i) 
+  /*printf("\nAfter initialization but before calculation, u matrix:\n\n");
+  for (i = 0; i <= part_len+1; ++i)
   {
     for (j = 0; j <= part_len+1; ++j)
       printf("%0.1f ",u[i][j]);
     printf("\n");
   }
+
+  printf("%4.4f\n",u[1][part_len]);*/
+
+  fill_partition_arrays();
+
+  //printAllMatrixes();
 
   printf("%4.4f\n",u[1][part_len]);
 }
@@ -112,9 +203,95 @@ void init_part_arrays_zeros(){
   }
 }
 
+void init_part_arrays_ones(){
+  int i,j,n;
+  n = part_len+1;
+  for(i=0; i<=n; ++i){
+    for(j=0; j<=n; ++j){
+      u[i][j]=1;
+      up[i][j]=1;
+      upm[i][j]=1;
+      ud[i][j]=1;
+      u1d[i][j]=1;
+
+      s1[i][j]=1;
+      s2[i][j]=1;
+      s3[i][j]=1;
+      u1[i][j]=1;
+    }
+  }
+}
+
+
+void init_part_arrays_negatives(){
+  int i,j,n;
+  n = part_len+1;
+  for(i=0; i<=n; ++i){
+    for(j=0; j<=n; ++j){
+      u[i][j]=-1;
+      up[i][j]=-1;
+      upm[i][j]=-1;
+      ud[i][j]=-1;
+      u1d[i][j]=-1;
+
+      s1[i][j]=-1;
+      s2[i][j]=-1;
+      s3[i][j]=-1;
+      u1[i][j]=-1;
+    }
+  }
+}
+
+void init_partition_arrays()
+{//ERROR_FOUND first nested for loop was wrongly written and iterated
+  //init_part_arrays_zeros();
+  //init_part_arrays_ones();
+  init_part_arrays_negatives();
+
+  int i, j;
+  int n = part_len;
+  for(i=1; i<=n; ++i){
+    for(j=i; j<=i+TURN && j<=n; ++j){ //if(j>n)continue;
+      u[i][j] = 1;
+      up[i][j] = 0;
+      ud[i][j] = 0;
+      u1[i][j] = 0;
+      u1d[i][j] =0 ;
+      s1[i][j] = 0;
+      s2[i][j] = 0;
+      s3[i][j] = 0;
+    }
+  }
+  for(i=1; (i+TURN)<=n; ++i){
+    //s1[i][i+TURN] = 0;
+    //s2[i][i+TURN] = 0;
+  }
+
+  for(i=1; (i+TURN+1)<=n; ++i){//ERROR no need to do this as it will already be calculated as zero only
+    //s1[i][i+TURN+1] = 0;
+    //s2[i][i+TURN+1] = 0;
+  }
+
+  /*for(i=1; i<=n-4; ++i){
+    s1[i][i+4] = 0;
+    s2[i][i+4] = 0;
+  }*/
+  for(i=1; i<=n; ++i){
+    u[i+1][i] = 1;
+    u1[i+1][i] = 0;
+    u1d[i+1][i] = 0;
+  }
+  for(i=1; i<=n-1; i++){
+    u1[i+2][i] = 0;
+  }
+  
+}
+
+/*
 void init_partition_arrays()
 {
-  init_part_arrays_zeros();
+  //init_part_arrays_zeros();
+  init_part_arrays_negatives();
 
   int i, j;							
   int n = part_len;
@@ -142,8 +319,8 @@ void init_partition_arrays()
   for(i=1; i<=n-1; i++){
     u1[i+2][i] = 0;
   }
-}
-
+}*/
+/*
 void fill_partition_arrays()
 {
   int b,i,j;
@@ -169,9 +346,42 @@ void fill_partition_arrays()
       calc_u(i,j);
     }
   }
+}*/
+void fill_partition_arrays()
+{
+  int b,i,j;//printf("TURN=%d\n",TURN);
+  int n=part_len;
+  for(b=TURN+1; b<n; ++b){
+    for(i=1; i<=n-b; ++i){
+      j=i+b;
+
+      // Auxillary array//below condition is because they are already initialized for these i,j
+//	if((j-i)!=(TURN+1)){// && (j-i)!=(TURN) ){
+      calc_s1(i,j);
+      calc_s2(i,j);
+//	}
+      //calc_s3(i,j);
+
+      calc_upm(i,j);
+      calc_up(i,j);
+
+      calc_s3(i,j);//ERROR
+     // if (j < n) { // handled boundary condition
+        calc_u1d(i,j);
+        calc_u1(i,j);
+      //}
+
+      //calc_upm(i,j);
+      //calc_up(i,j);
+
+      calc_ud(i,j);
+      calc_u(i,j);
+    }
+  }
 }
 
-void calc_s1(int h, int j)
+
+/*void calc_s1(int h, int j)
 {
 		int l;						
 		for (l = h; l < j; ++l)
@@ -180,27 +390,59 @@ void calc_s1(int h, int j)
 						(exp(-Ed3(h,l,l+1)/RT)*u[l+2][j]+(ud[l+1][j]+
 																				up[l+1][j]*exp(-(auPenalty(l+1,j)/RT))));							
 		}
+}*/
+void calc_s1(int h, int j)//ERROR_FOUND s1[h][j]= instead of +=
+{//printf("Entering calc_s1: h=%d, j =%d\n",h,j);
+                int l;
+		double s1_val = 0.0;
+                for (l = h+1; l < j; ++l)//ERROR
+                {
+			double v1 = (get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)));
+			double v2 = (exp(-Ed3(h,l,l+1)/RT)*get_u(l+2,j));
+			double v3 = get_ud(l+1,j);
+			double v4 = (get_up(l+1,j)*exp(-(auPenalty(l+1,j)/RT)));
+			double val = v1*(v2+v3+v4);
+                        //double val = get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))*(exp(-Ed3(h,l,l+1)/RT)*get_u(l+2,j)+(get_ud(l+1,j)+get_up(l+1,j)*exp(-(auPenalty(l+1,j)/RT))));
+			s1_val += val;
+                }
+		set_s1(h,j,s1_val);//s1[h][j] = s1_val;
+//printf("Exiting calc_s1: h=%d, j =%d, val=%.3f\n",h,j,s1[h][j]);
 }
 
+
 void calc_s2(int h, int j)
-{
-	int l;							
-	for (l = h; l < j; ++l)
-	{
-			s2[h][j] = up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))*
-										(exp(-Ed3(h,l,l+1)/RT)*u1[l+2][j-1]+u1d[l+1][j-1]);							
+{//printf("Entering calc_s2: h=%d, j =%d\n",h,j);
+	int l;
+	double s2_val = 0.0;							
+	for (l = h+1; l < j; ++l)//ERROR
+	{//printf("In calc_s2 loop: get_up(h,l)=%.3f second term=%.3f third term=%.3f\n",get_up(h,l),(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)),(exp(-Ed3(h,l,l+1)/RT)*get_u1(l+2,j-1)+get_u1d(l+1,j-1)));
+		double v1 = (get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)));
+		double v2 = (exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j-1));
+		double v3 = get_u1d(l+1,j-1);
+		double val = v1*(v2+v3);
+		//double val = get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)) * (exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j-1)+get_u1d(l+1,j-1));							
+		s2_val += val;//Error: Eb is added
 	}
+	set_s2(h, j, s2_val);//s2[h][j] = s2_val;
+//printf("Exiting calc_s2: h=%d, j =%d, val=%.3f\n",h,j,s2[h][j]);
 }
 
 void calc_s3(int h, int j)
-{
-  int l;							
-  for (l = h; l < j; ++l)
+{//printf("Entering calc_s3: h=%d, j =%d\n",h,j);
+  int l;		
+	double s3_val = 0.0;					
+  for (l = h+1; l <= j && l+2<=part_len; ++l)//ERROR in for loop variable l
   {
-    s3[h][j] = up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))*
-      (f(j+1,h,l)*exp(-((j-l)*Eb)/RT) + 
-       exp(-(Ed3(h,l,l+1)+Eb)/RT)*u1[l+2][j] + u1d[l+1][j]);
+    	double v1 = (get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)));
+	double v2 = (f(j+1,h,l)*exp(-((j-l)*Eb)/RT));
+	double v3 = (exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j));
+	double v4 = get_u1d(l+1,j);
+	double val = v1*(v2+v3+v4);
+	//double val = get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))*(f(j+1,h,l)*exp(-((j-l)*Eb)/RT) + exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j) + get_u1d(l+1,j));
+  	s3_val += val;
   }
+ set_s3(h, j, s3_val);//s3[h][j] = s3_val;
+//printf("Exiting calc_s3: h=%d, j =%d, val=%.3f\n",h,j,s3[h][j]);
 }
 
 void create_partition_arrays()
@@ -231,7 +473,7 @@ void free_partition_arrays()
   freeTwoD(u1,len,len);
 }
 
-void calc_upm(int i, int j){
+/*void calc_upm(int i, int j){
 	double a = Ea, b=Eb, c=Ec;
 	double p_val = 0;
 	int l,h;
@@ -260,8 +502,48 @@ void calc_upm(int i, int j){
   else {
     upm[i][j] = 0;   
   }
+}*/
+
+void calc_upm(int i, int j){//printf("Entering calc_upm: i=%d, j =%d\n",i,j);
+        double a = Ea, b=Eb, c=Ec;
+        double p_val = 0;
+        int l,h;
+        double quadraticSum = 0;
+
+  if (canPair(RNA[i],RNA[j]))
+  {
+   for(l=i+2; l<j; ++l){
+	double v1 = (get_up(i+1,l) * exp((-1)*(a+2*c+auPenalty(i+1,l))/RT));
+	double v2 = (exp((-1)*(Ed3(i+1,l,l+1)+b)/RT) * get_u1(l+2,j-1));
+	double v3 = get_u1d(l+1,j-1);
+	p_val = p_val + (v1*(v2+v3));
+        //p_val += (get_up(i+1,l) * exp((-1)*(a+2*c+auPenalty(i+1,l))/RT) * (exp((-1)*(Ed3(i+1,l,l+1)+b)/RT) * get_u1(l+2,j-1) + get_u1d(l+1,j-1)));
+    }
+
+    for(l=i+3; l<j; ++l){
+	double v1 = (get_up(i+2,l)*exp((-1)*(a+2*c+b+Ed3(i,j,i+1)+auPenalty(i+2,l))/RT));
+	double v2 = (exp((-1)*(Ed3(i+2,l,l+1)+b)/RT)*get_u1(l+2,j-1));
+	double v3 = get_u1d(l+1,j-1);
+	p_val = p_val + (v1*(v2+v3));
+        //p_val += (get_up(i+2,l)*exp((-1)*(a+2*c+b+Ed3(i,j,i+1)+auPenalty(i+2,l))/RT) * (exp((-1)*(Ed3(i+2,l,l+1)+b)/RT)*get_u1(l+2,j-1) + get_u1d(l+1,j-1)));
+    }
+
+    for(h=i+3; h<j-1; ++h){
+      quadraticSum += (get_s2(h,j) * exp((-1)*(a+2*c+(h-i-1)*b)/RT));
+    }
+    quadraticSum *= (exp((-1)*Ed3(i,j,i+1)/RT));
+
+    p_val += quadraticSum;
+    set_upm(i, j, p_val);//upm[i][j] = p_val;
+  }
+  else {
+    set_upm(i, j, 0.0);//upm[i][j] = 0;
+  }
+//printf("Exiting calc_upm: i=%d, j =%d, val=%.3f\n",i,j,upm[i][j]);
 }
 
+
+/*
 void calc_u1(int i, int j){
 	double b=Eb, c=Ec;
 	double p_val = u1d[i][j];
@@ -275,8 +557,25 @@ void calc_u1(int i, int j){
 	p_val += quadraticSum;
 	
 	u1[i][j] = p_val;
+}*/
+void calc_u1(int i, int j){//printf("Entering calc_u1: i=%d, j =%d\n",i,j);
+        double b=Eb, c=Ec;
+        double p_val = get_u1d(i,j);
+        int h;
+        double quadraticSum = 0;
+
+        for(h=i+1; h<j; ++h){
+                quadraticSum += (get_s3(h,j) * exp((-1)*(c+(h-i)*b)/RT));
+        }
+
+        p_val += quadraticSum;
+
+         set_u1(i, j, p_val);//u1[i][j] = p_val;
+//printf("Exiting calc_u1: i=%d, j =%d, val=%.3f\n",i,j,u1[i][j]);
 }
 
+
+/*
 void calc_u1d(int i, int j){
 	double b=Eb, c=Ec;
 	double p_val = 0;
@@ -287,8 +586,27 @@ void calc_u1d(int i, int j){
 	}
 
 	u1d[i][j] = p_val;
+}*/
+
+void calc_u1d(int i, int j){//printf("Entering calc_u1d: i=%d, j =%d\n",i,j);
+        double b=Eb, c=Ec;
+        double p_val = 0;
+        int l;
+
+        for(l=i+1; l<=j && l+2<=part_len; ++l){//ERROR in l,,,//up should be calculated before u1d
+                double v1 = (get_up(i,l)*exp((-1)*(c+auPenalty(i,l))/RT));
+		double v2 = (f(j+1,i,l)*exp((-1)*(j-l)*b/RT));
+		double v3 = (exp((-1)*(Ed3(i,l,l+1)+b)/RT)*get_u1(l+2,j));
+		double v4 = get_u1d(l+1,j);
+		p_val += (v1*(v2+v3+v4));
+		//p_val += (get_up(i,l)*exp((-1)*(c+auPenalty(i,l))/RT) * (f(j+1,i,l)*exp((-1)*(j-l)*b/RT) + exp((-1)*(Ed3(i,l,l+1)+b)/RT)*get_u1(l+2,j) + get_u1d(l+1,j)));
+        }
+
+         set_u1d(i, j, p_val);//u1d[i][j] = p_val;
+//printf("Exiting calc_u1d: i=%d, j =%d, val=%.3f\n",i,j,u1d[i][j]);
 }
 
+/*
 void calc_u(int i, int j)
 {
 	int uval = 1;
@@ -304,8 +622,26 @@ void calc_u(int i, int j)
 		uval += s1[ctr][j];
 	}
 	u[i][j] = uval;
+}*/
+void calc_u(int i, int j)
+{//printf("Entering calc_u: i=%d, j =%d\n",i,j);
+        int uval = 1 + get_up(i,j)*exp(-auPenalty(i,j)/RT);
+  int h;
+        int ctr;
+        uval +=  get_ud(i,j);
+
+  for (h = i+1; h < j; ++h) {
+                uval += (get_up(h,j) * exp( -(Ed5(h,j,h-1) + auPenalty(h,j)) / RT ));
+        }
+
+        for (ctr = i+1; ctr < j-1; ++ctr) {
+                uval += get_s1(ctr,j);
+        }
+        set_u(i, j, uval);//u[i][j] = uval;
+//printf("Exiting calc_u: i=%d, j =%d, val=%.3f\n",i,j,u[i][j]);
 }
 
+/*
 void calc_ud(int i, int j)
 {
 	int l;
@@ -326,8 +662,32 @@ void calc_ud(int i, int j)
 		udij += (val1 * (val2 + val3));
 	}
   ud[i][j]  = udij;
+}*/
+
+void calc_ud(int i, int j)
+{//printf("Entering calc_ud: i=%d, j =%d\n",i,j);
+        int l;
+  double udij = 0;
+
+        for (l = i+1; l < j; ++l)
+  {
+                double val1, val2, val3;
+                val1 = get_up(i,l);
+                val1 = val1 * exp(-auPenalty(i,l) / RT);
+
+                val2 = get_u(l+2,j);
+                val2 = val2 * exp(-Ed3(i,l,l+1)/RT);
+
+                val3 = get_ud(l+1,j);
+                val3 = val3 + get_up(l+1,j) * exp( -auPenalty(l+1,j) / RT );
+
+                udij += (val1 * (val2 + val3));
+        }
+  set_ud(i, j, udij);//ud[i][j]  = udij;
+//printf("Exiting calc_ud: i=%d, j =%d, val=%.3f\n",i,j,ud[i][j]);
 }
 
+/*
 void calc_up(int i, int j)
 {
   double up_val = 0.0;
@@ -356,4 +716,47 @@ void calc_up(int i, int j)
   else  {
     up[i][j] = 0;   
   }
+}*/
+
+void calc_up(int i, int j)
+{//printf("Entering calc_up: i=%d, j =%d\n",i,j);
+  double up_val = 0.0;
+  int p,q;
+
+  if (canPair(RNA[i],RNA[j]))// if(j-i>TURN)
+  {
+   /*for (p = i+1; p <= MIN(j-2-TURN,i+MAXLOOP+1) ; p++) {
+      int minq = j-i+p-MAXLOOP-2;
+      if (minq < p+1+TURN) minq = p+1+TURN;
+      int maxq = (p==(i+1))?(j-2):(j-1);
+
+      for (q = minq; q <= maxq; q++) {
+       if (canPair(p,q)==0) continue;
+        up_val += (get_up(p,q) * exp(-eL(i,j,p,q)/RT));
+      }
+    }*/
+	int h,l;
+    for (h = i+1; h < j ; h++) {
+      for (l = h+1; l < j; l++) {
+        if (canPair(RNA[h],RNA[l])==0) continue;
+	if(h==(i+1) && l==(j-1)) continue;
+	//if((l-h)<=TURN) continue;
+        up_val += (get_up(h,l) * exp(-eL(i,j,h,l)/RT));
+      }
+    }
+
+	//ERROR below line should not be there
+    //up_val = up_val * exp(-Ed3(i,j,i+1)/RT);
+    up_val = up_val + exp(-eH(i,j)/RT );
+    up_val = up_val + (exp(-eS(i,j)/RT ) * get_up(i+1,j-1));
+    up_val = up_val + get_upm(i,j);
+
+    set_up(i, j, up_val);//up[i][j] = up_val;
+  }
+  else  {
+    set_up(i, j, 0.0);//up[i][j] = 0;
+  }
+//printf("Exiting calc_up: i=%d, j =%d, val=%.3f\n",i,j,up[i][j]);
 }
+
+
