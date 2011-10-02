@@ -11,7 +11,7 @@
 #include "omp.h"
 #endif
 
-//#define DEBUG_PF 0
+//#define DEBUG_PF 1
 
 #ifdef DEBUG_PF 
   #undef Ec
@@ -173,7 +173,7 @@ void calculate_partition(int len)
 
   fill_partition_arrays();
 
-  //printAllMatrixes();
+  printAllMatrixes();
 
   printf("%4.4f\n",u[1][part_len]);
 }
@@ -347,7 +347,7 @@ void fill_partition_arrays()
   }
 }*/
 void fill_partition_arrays()
-{
+{//printf("RT=%d\n",RT);return;
   int b,i,j;//printf("TURN=%d\n",TURN);
   int n=part_len;
   for(b=TURN+1; b<n; ++b){
@@ -624,7 +624,7 @@ void calc_u(int i, int j)
 }*/
 void calc_u(int i, int j)
 {//printf("Entering calc_u: i=%d, j =%d\n",i,j);
-        int uval = 1 + get_up(i,j)*exp(-auPenalty(i,j)/RT);
+        double uval = 1 + get_up(i,j)*exp(-auPenalty(i,j)/RT);
   int h;
         int ctr;
         uval +=  get_ud(i,j);
