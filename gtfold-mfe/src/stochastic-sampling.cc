@@ -30,7 +30,7 @@ double U_ij(int i, int j)
 
 double U_hj(int i, int h, int j)
 {
-  return (feasible(h,j) == true)?up[h][j]*exp(-(Ed5(h,j,h-1)+auPenalty(h,j))/RT)/u[i][j]:0;
+  return (feasible(h,j) == true)?up[h][j]*exp(-(ED5_new(h,j,h-1)+auPenalty(h,j))/RT)/u[i][j]:0;
 }
 
 double U_il(int i, int j)
@@ -45,22 +45,22 @@ double U_s1h(int i, int h, int j)
 
 double U_ihlj_case1(int i, int h, int l, int j)
 {
-  return feasible(h,l)?up[h][l]*exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)* (exp(-Ed3(h,l,l+1)/RT)*u[l+2][j]) /s1[h][j]:0;
+  return feasible(h,l)?up[h][l]*exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)* (exp(-ED3_new(h,l,l+1)/RT)*u[l+2][j]) /s1[h][j]:0;
 }
 
 double U_ihlj_case2(int i, int h, int l, int j)
 {
-  return feasible(h,l)?up[h][l]*exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)* (ud[l+1][j]) /s1[h][j]:0;
+  return feasible(h,l)?up[h][l]*exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)* (ud[l+1][j]) /s1[h][j]:0;
 }
 
 double U_ihlj_case3(int i, int h, int l, int j)
 {
-  return feasible(h,l)?up[h][l]*exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)* (up[l+1][j]*exp(-(auPenalty(l+1,j)/RT))) /s1[h][j]:0;
+  return feasible(h,l)?up[h][l]*exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)* (up[l+1][j]*exp(-(auPenalty(l+1,j)/RT))) /s1[h][j]:0;
 }
 
 double UD_il_case1(int i, int l, int j)
 {
-  return feasible(i,l)?(up[i][l]*exp(-1*auPenalty(i,l)/RT)*exp(-1*Ed3(i,l,l+1)/RT)*u[l+2][j])/ud[i][j]:0;  
+  return feasible(i,l)?(up[i][l]*exp(-1*auPenalty(i,l)/RT)*exp(-1*ED3_new(i,l,l+1)/RT)*u[l+2][j])/ud[i][j]:0;  
 }
 
 double UD_il_case2(int i, int l, int j)
@@ -95,7 +95,7 @@ double Q_ijhlBI(int i, int j, int h, int l)
 
 double UPM_ip1l_case1(int i, int l, int j)
 {
-  return feasible(i+1,l)?(up[i+1][l] * exp((-1)*(Ea+2*Ec+auPenalty(i+1,l))/RT) * exp(-1*(Ed3(i+1,l,l+1)+Eb)/RT) * u1[l+2][j-1])/upm[i][j]:0;
+  return feasible(i+1,l)?(up[i+1][l] * exp((-1)*(Ea+2*Ec+auPenalty(i+1,l))/RT) * exp(-1*(ED3_new(i+1,l,l+1)+Eb)/RT) * u1[l+2][j-1])/upm[i][j]:0;
 }
 
 double UPM_ip1l_case2(int i, int l, int j)
@@ -105,29 +105,29 @@ double UPM_ip1l_case2(int i, int l, int j)
 
 double UPM_ip2l_case1(int i, int l , int j)
 {
-  return feasible(i+2,l)?up[i+2][l]*exp((-1)*(Ea+2*Ec+Eb+Ed3(i,j,i+1)+auPenalty(i+2,l))/RT) * (exp((-1)*(Ed3(i+2,l,l+1)+Eb)/RT)*u1[l+2][j-1])/upm[i][j]:0;
+  return feasible(i+2,l)?up[i+2][l]*exp((-1)*(Ea+2*Ec+Eb+ED3_new(i,j,i+1)+auPenalty(i+2,l))/RT) * (exp((-1)*(ED3_new(i+2,l,l+1)+Eb)/RT)*u1[l+2][j-1])/upm[i][j]:0;
 }
 
 double UPM_ip2l_case2(int i, int l , int j)
 {
-  return feasible(i+2,l)?(up[i+2][l]*exp((-1)*(Ea+2*Ec+Eb+Ed3(i,j,i+1)+auPenalty(i+2,l))/RT) * u1d[l+1][j-1])/upm[i][j]:0;
+  return feasible(i+2,l)?(up[i+2][l]*exp((-1)*(Ea+2*Ec+Eb+ED3_new(i,j,i+1)+auPenalty(i+2,l))/RT) * u1d[l+1][j-1])/upm[i][j]:0;
 }
 
 
 double UPM_ijs2h(int i, int h , int j)
 {
-  return exp((-1)*Ed3(i,j,i+1)/RT)* (s2[h][j] * exp((-1)*(Ea+2*Ec+(h-i-1)*Eb)/RT))/upm[i][j];
+  return exp((-1)*ED3_new(i,j,i+1)/RT)* (s2[h][j] * exp((-1)*(Ea+2*Ec+(h-i-1)*Eb)/RT))/upm[i][j];
 }
 
 
 double UPM_ijhl_case1(int i, int h, int l, int j)
 {
-  return feasible(h,l)?up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))* (exp(-Ed3(h,l,l+1)/RT)*u1[l+2][j-1])/s2[h][j]:0;
+  return feasible(h,l)?up[h][l]*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))* (exp(-ED3_new(h,l,l+1)/RT)*u1[l+2][j-1])/s2[h][j]:0;
 }
 
 double UPM_ijhl_case2(int i, int h, int l, int j)
 {
-  return feasible(h,l)?up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))* (u1d[l+1][j-1])/s2[h][j]:0;
+  return feasible(h,l)?up[h][l]*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))* (u1d[l+1][j-1])/s2[h][j]:0;
 }
 
 // u1d : case 1
@@ -139,7 +139,7 @@ double U1D_ij_il_case1(int i, int l, int j)
 // u1d : case 2
 double U1D_ij_il_case2(int i, int l, int j)
 {
-  return feasible(i,l)?(up[i][l]*exp((-1)*(Ec+auPenalty(i,l))/RT)*(exp((-1)*(Ed3(i,l,l+1)+Eb)/RT)*u1[l+2][j]))/u1d[i][j]:0;
+  return feasible(i,l)?(up[i][l]*exp((-1)*(Ec+auPenalty(i,l))/RT)*(exp((-1)*(ED3_new(i,l,l+1)+Eb)/RT)*u1[l+2][j]))/u1d[i][j]:0;
 }
 
 // u1d : case 3
@@ -163,17 +163,17 @@ double U1_ij_s3h(int i, int h, int j)
 // u1 : sample l
 double U1_j_hl_case1(int h, int l, int j)
 {
-  return feasible(h,l)?(up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))* (f(j+1,h,l)*exp(-((j-l)*Eb)/RT))) /s3[h][j]:0;
+  return feasible(h,l)?(up[h][l]*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))* (f(j+1,h,l)*exp(-((j-l)*Eb)/RT))) /s3[h][j]:0;
 }
 
 double U1_j_hl_case2(int h, int l, int j)
 {
-  return feasible(h,l)?(up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))* (exp(-(Ed3(h,l,l+1)+Eb)/RT)*u1[l+2][j])) /s3[h][j]:0;
+  return feasible(h,l)?(up[h][l]*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))* (exp(-(ED3_new(h,l,l+1)+Eb)/RT)*u1[l+2][j])) /s3[h][j]:0;
 }
 
 double U1_j_hl_case3(int h, int l, int j)
 {
-  return feasible(h,l)?(up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))* (u1d[l+1][j])) /s3[h][j]:0;
+  return feasible(h,l)?(up[h][l]*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))* (u1d[l+1][j])) /s3[h][j]:0;
 }
 
 void rnd_u(int i, int j, int* structure)

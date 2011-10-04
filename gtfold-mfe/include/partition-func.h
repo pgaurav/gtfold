@@ -20,7 +20,8 @@ extern	double ** s3;
 extern	double ** u1;
 
 extern int part_len;
-
+double ED3_new(int i, int j, int k);
+double ED5_new(int i, int j, int k);
 double f(int j, int h, int l);
 void calculate_partition(int len);
 void free_partition();

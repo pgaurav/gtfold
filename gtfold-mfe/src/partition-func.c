@@ -113,13 +113,21 @@ void set_s1(int i, int j, double val) {if(s1[i][j]!=-1 && s1[i][j]!=val) errorAn
 void set_s2(int i, int j, double val) {if(s2[i][j]!=-1 && s2[i][j]!=val) errorAndExit("set_s2 entry is not -1.\n",i,j,s2[i][j],val); s2[i][j]=val;}
 void set_s3(int i, int j, double val) {if(s3[i][j]!=-1 && s3[i][j]!=val) errorAndExit("set_s3 entry is not -1.\n",i,j,s3[i][j],val); s3[i][j]=val;}
 
+double ED3_new(int i, int j, int k){
+	//return Ed3(i,j,k);
+	return Ed5(j,i,k);
+}
 
+double ED5_new(int i, int j, int k){
+        //return Ed5(i,j,k);
+	return Ed3(j,i,k);
+}
 
 double f(int j, int h, int l){
 	if(j - 1 == l)
 		return 1;
 	else 
-		return exp(-Ed3(h,l,l+1)/RT);
+		return exp(-ED3_new(h,l,l+1)/RT);
 }
 
 void printMatrix(double** u, int part_len){
@@ -385,8 +393,8 @@ void fill_partition_arrays()
 		int l;						
 		for (l = h; l < j; ++l)
 		{
-				s1[h][j] = up[h][l]*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))*
-						(exp(-Ed3(h,l,l+1)/RT)*u[l+2][j]+(ud[l+1][j]+
+				s1[h][j] = up[h][l]*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))*
+						(exp(-ED3_new(h,l,l+1)/RT)*u[l+2][j]+(ud[l+1][j]+
 																				up[l+1][j]*exp(-(auPenalty(l+1,j)/RT))));							
 		}
 }*/
@@ -396,12 +404,12 @@ void calc_s1(int h, int j)//ERROR_FOUND s1[h][j]= instead of +=
 		double s1_val = 0.0;
                 for (l = h+1; l < j; ++l)//ERROR
                 {
-			double v1 = (get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)));
-			double v2 = (exp(-Ed3(h,l,l+1)/RT)*get_u(l+2,j));
+			double v1 = (get_up(h,l)*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)));
+			double v2 = (exp(-ED3_new(h,l,l+1)/RT)*get_u(l+2,j));
 			double v3 = get_ud(l+1,j);
 			double v4 = (get_up(l+1,j)*exp(-(auPenalty(l+1,j)/RT)));
 			double val = v1*(v2+v3+v4);
-                        //double val = get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))*(exp(-Ed3(h,l,l+1)/RT)*get_u(l+2,j)+(get_ud(l+1,j)+get_up(l+1,j)*exp(-(auPenalty(l+1,j)/RT))));
+                        //double val = get_up(h,l)*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))*(exp(-ED3_new(h,l,l+1)/RT)*get_u(l+2,j)+(get_ud(l+1,j)+get_up(l+1,j)*exp(-(auPenalty(l+1,j)/RT))));
 			s1_val += val;
                 }
 		set_s1(h,j,s1_val);//s1[h][j] = s1_val;
@@ -414,12 +422,12 @@ void calc_s2(int h, int j)
 	int l;
 	double s2_val = 0.0;							
 	for (l = h+1; l < j; ++l)//ERROR
-	{//printf("In calc_s2 loop: get_up(h,l)=%.3f second term=%.3f third term=%.3f\n",get_up(h,l),(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)),(exp(-Ed3(h,l,l+1)/RT)*get_u1(l+2,j-1)+get_u1d(l+1,j-1)));
-		double v1 = (get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)));
-		double v2 = (exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j-1));
+	{//printf("In calc_s2 loop: get_up(h,l)=%.3f second term=%.3f third term=%.3f\n",get_up(h,l),(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)),(exp(-ED3_new(h,l,l+1)/RT)*get_u1(l+2,j-1)+get_u1d(l+1,j-1)));
+		double v1 = (get_up(h,l)*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)));
+		double v2 = (exp(-(ED3_new(h,l,l+1)+Eb)/RT)*get_u1(l+2,j-1));
 		double v3 = get_u1d(l+1,j-1);
 		double val = v1*(v2+v3);
-		//double val = get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)) * (exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j-1)+get_u1d(l+1,j-1));							
+		//double val = get_up(h,l)*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)) * (exp(-(ED3_new(h,l,l+1)+Eb)/RT)*get_u1(l+2,j-1)+get_u1d(l+1,j-1));							
 		s2_val += val;//Error: Eb is added
 	}
 	set_s2(h, j, s2_val);//s2[h][j] = s2_val;
@@ -432,12 +440,12 @@ void calc_s3(int h, int j)
 	double s3_val = 0.0;					
   for (l = h+1; l <= j && l+2<=part_len; ++l)//ERROR in for loop variable l
   {
-    	double v1 = (get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT)));
+    	double v1 = (get_up(h,l)*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT)));
 	double v2 = (f(j+1,h,l)*exp(-((j-l)*Eb)/RT));
-	double v3 = (exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j));
+	double v3 = (exp(-(ED3_new(h,l,l+1)+Eb)/RT)*get_u1(l+2,j));
 	double v4 = get_u1d(l+1,j);
 	double val = v1*(v2+v3+v4);
-	//double val = get_up(h,l)*(exp(-(Ed5(h,l,h-1)+auPenalty(h,l))/RT))*(f(j+1,h,l)*exp(-((j-l)*Eb)/RT) + exp(-(Ed3(h,l,l+1)+Eb)/RT)*get_u1(l+2,j) + get_u1d(l+1,j));
+	//double val = get_up(h,l)*(exp(-(ED5_new(h,l,h-1)+auPenalty(h,l))/RT))*(f(j+1,h,l)*exp(-((j-l)*Eb)/RT) + exp(-(ED3_new(h,l,l+1)+Eb)/RT)*get_u1(l+2,j) + get_u1d(l+1,j));
   	s3_val += val;
   }
  set_s3(h, j, s3_val);//s3[h][j] = s3_val;
@@ -482,18 +490,18 @@ void free_partition_arrays()
   {
    for(l=i+2; l<j; ++l){
       p_val += (up[i+1][l] * exp((-1)*(a+2*c+auPenalty(i+1,l))/RT) * 
-          (exp((-1)*(Ed3(i+1,l,l+1)+b)/RT) * u1[l+2][j-1] + u1d[l+1][j-1]));
+          (exp((-1)*(ED3_new(i+1,l,l+1)+b)/RT) * u1[l+2][j-1] + u1d[l+1][j-1]));
     }
 
     for(l=i+3; l<j; ++l){
-      p_val += (up[i+2][l]*exp((-1)*(a+2*c+b+Ed3(i,j,i+1)+auPenalty(i+2,l))/RT) * 
-          (exp((-1)*(Ed3(i+2,l,l+1)+b)/RT)*u1[l+2][j-1] + u1d[l+1][j-1]));
+      p_val += (up[i+2][l]*exp((-1)*(a+2*c+b+ED3_new(i,j,i+1)+auPenalty(i+2,l))/RT) * 
+          (exp((-1)*(ED3_new(i+2,l,l+1)+b)/RT)*u1[l+2][j-1] + u1d[l+1][j-1]));
     }
 
     for(h=i+3; h<j-1; ++h){
       quadraticSum += (s2[h][j] * exp((-1)*(a+2*c+(h-i-1)*b)/RT));	
     }
-    quadraticSum *= exp((-1)*Ed3(i,j,i+1)/RT);
+    quadraticSum *= exp((-1)*ED3_new(i,j,i+1)/RT);
 
     p_val += quadraticSum;
     upm[i][j] = p_val;
@@ -513,24 +521,24 @@ void calc_upm(int i, int j){//printf("Entering calc_upm: i=%d, j =%d\n",i,j);
   {
    for(l=i+2; l<j; ++l){
 	double v1 = (get_up(i+1,l) * exp((-1)*(a+2*c+auPenalty(i+1,l))/RT));
-	double v2 = (exp((-1)*(Ed3(i+1,l,l+1)+b)/RT) * get_u1(l+2,j-1));
+	double v2 = (exp((-1)*(ED3_new(i+1,l,l+1)+b)/RT) * get_u1(l+2,j-1));
 	double v3 = get_u1d(l+1,j-1);
 	p_val = p_val + (v1*(v2+v3));
-        //p_val += (get_up(i+1,l) * exp((-1)*(a+2*c+auPenalty(i+1,l))/RT) * (exp((-1)*(Ed3(i+1,l,l+1)+b)/RT) * get_u1(l+2,j-1) + get_u1d(l+1,j-1)));
+        //p_val += (get_up(i+1,l) * exp((-1)*(a+2*c+auPenalty(i+1,l))/RT) * (exp((-1)*(ED3_new(i+1,l,l+1)+b)/RT) * get_u1(l+2,j-1) + get_u1d(l+1,j-1)));
     }
 
     for(l=i+3; l<j; ++l){
-	double v1 = (get_up(i+2,l)*exp((-1)*(a+2*c+b+Ed3(i,j,i+1)+auPenalty(i+2,l))/RT));
-	double v2 = (exp((-1)*(Ed3(i+2,l,l+1)+b)/RT)*get_u1(l+2,j-1));
+	double v1 = (get_up(i+2,l)*exp((-1)*(a+2*c+b+ED3_new(i,j,i+1)+auPenalty(i+2,l))/RT));
+	double v2 = (exp((-1)*(ED3_new(i+2,l,l+1)+b)/RT)*get_u1(l+2,j-1));
 	double v3 = get_u1d(l+1,j-1);
 	p_val = p_val + (v1*(v2+v3));
-        //p_val += (get_up(i+2,l)*exp((-1)*(a+2*c+b+Ed3(i,j,i+1)+auPenalty(i+2,l))/RT) * (exp((-1)*(Ed3(i+2,l,l+1)+b)/RT)*get_u1(l+2,j-1) + get_u1d(l+1,j-1)));
+        //p_val += (get_up(i+2,l)*exp((-1)*(a+2*c+b+ED3_new(i,j,i+1)+auPenalty(i+2,l))/RT) * (exp((-1)*(ED3_new(i+2,l,l+1)+b)/RT)*get_u1(l+2,j-1) + get_u1d(l+1,j-1)));
     }
 
     for(h=i+3; h<j-1; ++h){
       quadraticSum += (get_s2(h,j) * exp((-1)*(a+2*c+(h-i-1)*b)/RT));
     }
-    quadraticSum *= (exp((-1)*Ed3(i,j,i+1)/RT));
+    quadraticSum *= (exp((-1)*ED3_new(i,j,i+1)/RT));
 
     p_val += quadraticSum;
     set_upm(i, j, p_val);//upm[i][j] = p_val;
@@ -581,7 +589,7 @@ void calc_u1d(int i, int j){
 	int l;
 
 	for(l=i+1; l<=j; ++l){
-		p_val += (up[i][l]*exp((-1)*(c+auPenalty(i,l))/RT) * (f(j+1,i,l)*exp((-1)*(j-l)*b/RT) + exp((-1)*(Ed3(i,l,l+1)+b)/RT)*u1[l+2][j] + u1d[l+1][j]));
+		p_val += (up[i][l]*exp((-1)*(c+auPenalty(i,l))/RT) * (f(j+1,i,l)*exp((-1)*(j-l)*b/RT) + exp((-1)*(ED3_new(i,l,l+1)+b)/RT)*u1[l+2][j] + u1d[l+1][j]));
 	}
 
 	u1d[i][j] = p_val;
@@ -595,10 +603,10 @@ void calc_u1d(int i, int j){//printf("Entering calc_u1d: i=%d, j =%d\n",i,j);
         for(l=i+1; l<=j && l+2<=part_len; ++l){//ERROR in l,,,//up should be calculated before u1d
                 double v1 = (get_up(i,l)*exp((-1)*(c+auPenalty(i,l))/RT));
 		double v2 = (f(j+1,i,l)*exp((-1)*(j-l)*b/RT));
-		double v3 = (exp((-1)*(Ed3(i,l,l+1)+b)/RT)*get_u1(l+2,j));
+		double v3 = (exp((-1)*(ED3_new(i,l,l+1)+b)/RT)*get_u1(l+2,j));
 		double v4 = get_u1d(l+1,j);
 		p_val += (v1*(v2+v3+v4));
-		//p_val += (get_up(i,l)*exp((-1)*(c+auPenalty(i,l))/RT) * (f(j+1,i,l)*exp((-1)*(j-l)*b/RT) + exp((-1)*(Ed3(i,l,l+1)+b)/RT)*get_u1(l+2,j) + get_u1d(l+1,j)));
+		//p_val += (get_up(i,l)*exp((-1)*(c+auPenalty(i,l))/RT) * (f(j+1,i,l)*exp((-1)*(j-l)*b/RT) + exp((-1)*(ED3_new(i,l,l+1)+b)/RT)*get_u1(l+2,j) + get_u1d(l+1,j)));
         }
 
          set_u1d(i, j, p_val);//u1d[i][j] = p_val;
@@ -614,7 +622,7 @@ void calc_u(int i, int j)
 	uval +=  ud[i][j];
 	
   for (h = i+1; h < j; ++h) {
-		uval += up[h][j] * exp( -(Ed5(h,j,h-1) + auPenalty(h,j)) / RT );
+		uval += up[h][j] * exp( -(ED5_new(h,j,h-1) + auPenalty(h,j)) / RT );
 	}
 
 	for (ctr = i+1; ctr < j-1; ++ctr) {
@@ -630,7 +638,7 @@ void calc_u(int i, int j)
         uval +=  get_ud(i,j);
 
   for (h = i+1; h < j; ++h) {
-                uval += (get_up(h,j) * exp( -(Ed5(h,j,h-1) + auPenalty(h,j)) / RT ));
+                uval += (get_up(h,j) * exp( -(ED5_new(h,j,h-1) + auPenalty(h,j)) / RT ));
         }
 
         for (ctr = i+1; ctr < j-1; ++ctr) {
@@ -653,7 +661,7 @@ void calc_ud(int i, int j)
 		val1 = val1 * exp(-auPenalty(i,l) / RT);
 
 		val2 = u[l+2][j];
-		val2 = val2 * exp(-Ed3(i,l,l+1)/RT);
+		val2 = val2 * exp(-ED3_new(i,l,l+1)/RT);
 
 		val3 = ud[l+1][j];
 		val3 = val3 + up[l+1][j] * exp( -auPenalty(l+1,j) / RT );
@@ -675,7 +683,7 @@ void calc_ud(int i, int j)
                 val1 = val1 * exp(-auPenalty(i,l) / RT);
 
                 val2 = get_u(l+2,j);
-                val2 = val2 * exp(-Ed3(i,l,l+1)/RT);
+                val2 = val2 * exp(-ED3_new(i,l,l+1)/RT);
 
                 val3 = get_ud(l+1,j);
                 val3 = val3 + get_up(l+1,j) * exp( -auPenalty(l+1,j) / RT );
@@ -705,7 +713,7 @@ void calc_up(int i, int j)
       }
     }
 
-    up_val = up_val * exp(-Ed3(i,j,i+1)/RT);
+    up_val = up_val * exp(-ED3_new(i,j,i+1)/RT);
     up_val = up_val + exp(-eH(i,j)/RT );
     up_val = up_val + exp(-eS(i,j)/RT ) * up[i+1][j-1];
     up_val = up_val + upm[i][j];
@@ -745,7 +753,7 @@ void calc_up(int i, int j)
     }
 
 	//ERROR below line should not be there
-    //up_val = up_val * exp(-Ed3(i,j,i+1)/RT);
+    //up_val = up_val * exp(-ED3_new(i,j,i+1)/RT);
     up_val = up_val + exp(-eH(i,j)/RT );
     up_val = up_val + (exp(-eS(i,j)/RT ) * get_up(i+1,j-1));
     up_val = up_val + get_upm(i,j);
