@@ -247,6 +247,11 @@ void init_part_arrays_negatives(){
       u1[i][j]=-1;
     }
   }
+  for(i=0; i<=n+1; ++i){
+   for(j=0; j<=n+1; ++j){
+    u1[i][j]=-1;
+   }
+  }
 }
 
 void init_partition_arrays()
@@ -288,7 +293,7 @@ void init_partition_arrays()
     u1[i+1][i] = 0;
     u1d[i+1][i] = 0;
   }
-  for(i=1; i<=n-1; i++){
+  for(i=1; i<=n; i++){//for(i=1; i<=n-1; i++){
     u1[i+2][i] = 0;
   }
   
@@ -463,7 +468,7 @@ void create_partition_arrays()
   s1 = mallocTwoD(len,len);
   s2 = mallocTwoD(len,len);
   s3 = mallocTwoD(len,len);
-  u1 = mallocTwoD(len,len);
+  u1 = mallocTwoD(len+1,len+1);//u1 = mallocTwoD(len,len);
 }
 
 void free_partition_arrays()
@@ -477,7 +482,7 @@ void free_partition_arrays()
   freeTwoD(s1,len,len);
   freeTwoD(s2,len,len);
   freeTwoD(s3,len,len);
-  freeTwoD(u1,len,len);
+  freeTwoD(u1,len+1,len+1);//freeTwoD(u1,len,len);
 }
 
 /*void calc_upm(int i, int j){
@@ -600,7 +605,7 @@ void calc_u1d(int i, int j){//printf("Entering calc_u1d: i=%d, j =%d\n",i,j);
         double p_val = 0;
         int l;
 
-        for(l=i+1; l<=j && l+2<=part_len; ++l){//ERROR in l,,,//up should be calculated before u1d
+        for(l=i+1; l<=j; ++l){//for(l=i+1; l<=j && l+2<=part_len; ++l){//ERROR in l,,,//up should be calculated before u1d
                 double v1 = (get_up(i,l)*exp((-1)*(c+auPenalty(i,l))/RT));
 		double v2 = (f(j+1,i,l)*exp((-1)*(j-l)*b/RT));
 		double v3 = (exp((-1)*(ED3_new(i,l,l+1)+b)/RT)*get_u1(l+2,j));
