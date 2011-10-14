@@ -20,6 +20,7 @@ bool RNAMODE = false;
 bool b_prefilter = false;
 bool CALC_PART_FUNC = false;
 bool RND_SAMPLE = false;
+bool PF_COUNT_MODE = false;
 
 string seqfile = "";
 string constraintsFile = "";
@@ -74,6 +75,7 @@ void help() {
     printf("\nBETA OPTIONS\n");
     printf("   --bpp                Calculate base pair probabilities.\n");
     printf("   --partition          Calculate the partition function.\n");
+    printf("   --pf_count          Calculate the structure count using partition function and zero energy value.\n");
     printf("   --subopt NUM         Calculate suboptimal structures within NUM kcal/mol\n");
     printf("                        of the MFE. (Uses -d 2 treatment of dangling energies.)\n");
     printf("   -s, --useSHAPE FILE  Use SHAPE constraints from FILE.\n");      
@@ -186,7 +188,10 @@ void parse_options(int argc, char** argv) {
           help();
       } else if (strcmp(argv[i],"--partition") == 0) {
         CALC_PART_FUNC = true;
-      } else if (strcmp(argv[i],"--sample") == 0) {
+      } else if (strcmp(argv[i],"--pf_count") == 0) {
+        CALC_PART_FUNC = true;
+	PF_COUNT_MODE = true;
+      }  else if (strcmp(argv[i],"--sample") == 0) {
         RND_SAMPLE = true;
         if(i < argc)
           num_rnd = atoi(argv[++i]);

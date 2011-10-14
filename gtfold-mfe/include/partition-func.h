@@ -22,8 +22,15 @@ extern	double ** u1;
 extern int part_len;
 double ED3_new(int i, int j, int k);
 double ED5_new(int i, int j, int k);
+double EA_new();
+double EB_new();
+double EC_new();
+double eS_new(int i, int j);
+double eL_new(int i, int j, int p, int q);
+double eH_new(int i, int j);
+double auPenalty_new(int i, int j);
 double f(int j, int h, int l);
-void calculate_partition(int len);
+void calculate_partition(int len, int pf_count_mode);
 void free_partition();
 
 #ifdef __cplusplus

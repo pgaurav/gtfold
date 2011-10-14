@@ -24,6 +24,7 @@ extern bool UNAMODE;
 extern bool RNAMODE;
 extern bool CALC_PART_FUNC;
 extern bool RND_SAMPLE;
+extern bool PF_COUNT_MODE;
 
 extern string seqfile;
 extern string constraintsFile;

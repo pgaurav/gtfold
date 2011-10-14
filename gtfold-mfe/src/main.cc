@@ -287,43 +287,47 @@ int main(int argc, char** argv) {
   if (CALC_PART_FUNC == true)
   {
     printf("\nComputing partition function...\n");
-    calculate_partition(seq.length());
+    int pf_count_mode = 0;
+    if(PF_COUNT_MODE) pf_count_mode=1;
+    calculate_partition(seq.length(),pf_count_mode);
     free_partition();
     free_fold(seq.length());
     exit(0);
   }
   if (RND_SAMPLE == true)
   {
-    printf("\nComputing partition function...\n");
-    calculate_partition(seq.length());
-    
-    int* structure = new int[seq.length()+1];
-    srand(time(NULL));
+	  printf("\nComputing partition function...\n");
+	  int pf_count_mode = 1;
+	  //if(PF_COUNT_MODE) pf_count_mode=1;
+	  calculate_partition(seq.length(),pf_count_mode);
 
-    if (num_rnd > 0 ) {
-      printf("\nSampling structures...\n");
-      for (int count = 1; count <= num_rnd; ++count) 
-      {
-        memset(structure, 0, (seq.length()+1)*sizeof(int));
-        rnd_structure(structure, seq.length());
+	  int* structure = new int[seq.length()+1];
+	  srand(time(NULL));
 
-        std::string ensemble(seq.length()+1,'.');
-        for (int i = 1; i <= (int)seq.length(); ++ i) {
-       //     printf("%d %d\n",i,structure[i]);
-          if (structure[i] > 0 && ensemble[i] == '.')
-          {
-            ensemble[i] = '(';
-            ensemble[structure[i]] = ')';
-          }
-        }
-        std::cout << ensemble.substr(1) << std::endl;
-      }
-    }
+	  if (num_rnd > 0 ) {
+		  printf("\nSampling structures...\n");
+		  for (int count = 1; count <= num_rnd; ++count) 
+		  {
+			  memset(structure, 0, (seq.length()+1)*sizeof(int));
+			  rnd_structure(structure, seq.length());
 
-    free_partition();
-    free_fold(seq.length());
-    delete [] structure;
-    exit(0);
+			  std::string ensemble(seq.length()+1,'.');
+			  for (int i = 1; i <= (int)seq.length(); ++ i) {
+				  //     printf("%d %d\n",i,structure[i]);
+				  if (structure[i] > 0 && ensemble[i] == '.')
+				  {
+					  ensemble[i] = '(';
+					  ensemble[structure[i]] = ')';
+				  }
+			  }
+			  std::cout << ensemble.substr(1) << std::endl;
+		  }
+	  }
+
+	  free_partition();
+	  free_fold(seq.length());
+	  delete [] structure;
+	  exit(0);
   }
 
 	printf("\nComputing minimum free energy structure...\n");
