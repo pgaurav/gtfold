@@ -46,7 +46,7 @@
 #include "shapereader.h"
 #include "stochastic-sampling.h"
 
-//#define DEBUG 1
+#define DEBUG 1
 
 using namespace std;
 
@@ -227,13 +227,13 @@ void save_subopt_file(string outputFile, ss_map_t& ss_data,
 {
 	ofstream outfile;
 	outfile.open(outputFile.c_str());
-	char buff[1024];
+	char buff[4096];
 
-	sprintf(buff,"%s\t%0.2f", seq.c_str(), energy/100.0);
+	sprintf(buff,"%s %6.2f", seq.c_str(), energy/100.0);
 	outfile << buff << std::endl;
 	for (ss_map_t::iterator it = ss_data.begin(); it!= ss_data.end(); ++it) 
 	{
-		sprintf(buff,"%s %0.2f", (it->first).c_str(), it->second/100.0);
+		sprintf(buff,"%s %6.2f", (it->first).c_str(), it->second/100.0);
 		//outfile << it->first << '\t' << it->second/100.0 << std::endl;
 		outfile << buff << std::endl;
 	}

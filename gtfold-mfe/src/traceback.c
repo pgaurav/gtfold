@@ -56,7 +56,8 @@ void traceW(int j) {
 	int done = 0, i;
 	int wim1, flag = 1 ;
 	
-	assert(!(j == 0 || j == 1)); 
+  if (j == 0 || j == 1)
+    return;
 	
 	for (i = 1; i < j && !done; i++) {
 		if (j-i < TURN) continue;
