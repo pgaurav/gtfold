@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stack>
 #include <map>
+#include<sstream>
+#include<fstream>
 
 int ss_verbose = 0; 
 
@@ -225,7 +227,7 @@ void rnd_u(int i, int j, int* structure)
     {
       energy += ED5_new(h,j,h-1)+auPenalty_new(h,j);
       if (ss_verbose == 1) 
-        printf("(%d %d) %lf\n",i,j,(ED5_new(h,j,h-1)+auPenalty_new(h,j)) /100.0);
+        printf("(h=%d j=%d) (ED5_new(h,j,h-1)=%f auPenalty_new(h,j)=%f\n",h,j,(ED5_new(h,j,h-1)/100, auPenalty_new(h,j)/100.0));
       base_pair bp(h,j,UP);
       //set_single_stranded(i,h-1,structure);
       g_stack.push(bp);
@@ -263,7 +265,7 @@ void rnd_u(int i, int j, int* structure)
     {
       energy += (ED5_new(h1,l,h1-1)+ auPenalty_new(h1,l) + ED3_new(h1,l,l+1));
       if (ss_verbose == 1) 
-        printf("(%d %d) %lf\n",i,j,(ED5_new(h1,l,h1-1)+ auPenalty_new(h1,l) + ED3_new(h1,l,l+1)) /100.0);
+        printf("(h1=%d l=%d) ED5_new(h1,l,h1-1)=%f, auPenalty_new(h1,l)=%f, ED3_new(h1,l,l+1)=%f\n",h1,l,ED5_new(h1,l,h1-1)/100, auPenalty_new(h1,l)/100, ED3_new(h1,l,l+1)/100.0);
       base_pair bp1(h1,l,UP);
       base_pair bp2(l+2,j,U);
       g_stack.push(bp1);
@@ -276,7 +278,7 @@ void rnd_u(int i, int j, int* structure)
     {
       energy += (ED5_new(h1,l,h1-1)+auPenalty_new(h1,l));
       if (ss_verbose == 1) 
-        printf("(%d %d) %lf\n",i,j,(ED5_new(h1,l,h1-1)+auPenalty_new(h1,l))/100.0);
+        printf("(h1=%d l=%d) ED5_new(h1,l,h1-1)=%f auPenalty_new(h1,l)=%f\n",h1,l,ED5_new(h1,l,h1-1)/100,auPenalty_new(h1,l)/100.0);
       
       base_pair bp1(h1,l,UP);
       base_pair bp2(l+1,j,UD);
@@ -290,7 +292,7 @@ void rnd_u(int i, int j, int* structure)
     {
       energy += (ED5_new(h1,l,h1-1)+auPenalty_new(h1,l) + auPenalty_new(l+1,j));
       if (ss_verbose == 1) 
-        printf("(%d %d) %lf\n",i,j, (ED5_new(h1,l,h1-1)+auPenalty_new(h1,l) + auPenalty_new(l+1,j))/100.0);
+        printf("(h1=%d l=%d j=%d) ED5_new(h1,l,h1-1)=%f auPenalty_new(h1,l)=%f auPenalty_new(l+1,j)=%f\n",h1,l,j, ED5_new(h1,l,h1-1)/100, auPenalty_new(h1,l)/100, auPenalty_new(l+1,j)/100.0);
       //set_single_stranded(i,h1-1,structure);
       base_pair bp1(h1,l,UP);
       base_pair bp2(l+1,j,UP);
@@ -443,7 +445,7 @@ void rnd_u1(int i, int j, int* structure)
     cum_prob += U1_j_hl_case1(h1,l,j);
     if (rnd < cum_prob)
     {
-      int tt =  (j == l)?0:ED3_new(h1,l,l+1);
+      double tt =  (j == l)?0:ED3_new(h1,l,l+1);//CHANGE, earlier 'tt' was declared as int and not Manoj has changed it to double
       energy += (ED5_new(h1,l,h1-1)+auPenalty_new(h1,l) + tt + (j-l)*EB_new());
       if (ss_verbose == 1) 
         printf("U1_j_hl_case1(%d %d) %lf\n",h1,l, (ED5_new(h1,l,h1-1)+auPenalty_new(h1,l) + tt + (j-l)*EB_new())/100.0);
@@ -492,7 +494,7 @@ void rnd_u1d(int i, int j, int* structure)
     cum_prob += U1D_ij_il_case1(i,l,j);
     if (rnd < cum_prob)
     {
-      int tt = (j==l)?(0):(ED3_new(i,l,l+1));
+      double tt = (j==l)?(0):(ED3_new(i,l,l+1));//CHANGE, earlier 'tt' was declared as int and not Manoj has changed it to double
       energy += ( EC_new()+auPenalty_new(i,l) + tt + (j-l)*EB_new());
       if (ss_verbose == 1) {
         printf("U1D_ij_il_case1(%d %d %d) %lf\n",i,l,j, ( EC_new()+auPenalty_new(i,l) + tt + (j-l)*EB_new())/100.0);
@@ -725,7 +727,8 @@ void batch_sample(int num_rnd, int length, double U)
         const std::pair<int,double>& pp = iter->second;
         const double& estimated_p =  (double)pp.first/(double)num_rnd;
         const double& energy = pp.second;
-        double actual_p = pow(2.718281,-1.0*energy/RT_)/U;
+        //double actual_p = pow(2.718281,-1.0*energy/RT_)/U;
+        double actual_p = pow(2.718281,-1.0*energy*100/RT)/U;
 
         printf("%s %lf %lf %lf %d\n",ss.c_str(),energy,actual_p,estimated_p,pp.first);
         pcount += pp.first;
@@ -740,6 +743,101 @@ void batch_sample(int num_rnd, int length, double U)
       printf("\nMax frequency structure : \n%s e=%lf freq=%d p=%lf\n",bestStruct.c_str(),bestE,maxCount,(double)maxCount/(double)num_rnd);
       
     }
+
+	  delete [] structure;
+}
+
+void batch_sample_and_dump(int num_rnd, int length, double U, std::string ctFileDumpDir, std::string stochastic_summery_file_name, std::string seq, std::string seqfile)
+{
+	//data dump preparation code starts here
+	if(ctFileDumpDir.compare("")==0){
+          char abspath[1000];
+          getcwd(abspath, 1000);
+          ctFileDumpDir = abspath;
+        }
+        cout<<"Using ctFileDumpDir = "<<ctFileDumpDir<<endl;
+        std::stringstream ss;
+        ss<<ctFileDumpDir<<"/"<<stochastic_summery_file_name;
+        stochastic_summery_file_name = ss.str();
+        cout<<"Using stochastic_summary_file_name = "<<stochastic_summery_file_name<<endl;
+	std::ofstream summaryoutfile;
+        summaryoutfile.open(stochastic_summery_file_name.c_str());
+	std::string seqname = seqfile.substr(seqfile.find_last_of("/\\") + 1, seqfile.length() - 1);
+	cout<<"Sequence Name = "<<seqname<<endl;
+	//data dump preparation code ends here
+
+	  int* structure = new int[length+1];
+	  srand(time(NULL));
+    std::map<std::string,std::pair<int,double> >  uniq_structs;
+	  
+    if (num_rnd > 0 ) {
+      printf("\nSampling structures...\n");
+      int count; //nsamples =0;
+      for (count = 1; count <= num_rnd; ++count) 
+      {
+        memset(structure, 0, (length+1)*sizeof(int));
+        double energy = rnd_structure(structure, length);
+
+        std::string ensemble(length+1,'.');
+        for (int i = 1; i <= (int)length; ++ i) {
+          if (structure[i] > 0 && ensemble[i] == '.')
+          {
+            ensemble[i] = '(';
+            ensemble[structure[i]] = ')';
+          }
+        }
+        //double myEnegry = -88.4;
+        //++nsamples;
+        //if (fabs(energy-myEnegry)>0.0001) continue; //TODO: debug
+        //++count;
+
+        std::map<std::string,std::pair<int,double> >::iterator iter ;
+        if ((iter =uniq_structs.find(ensemble.substr(1))) != uniq_structs.end())
+        {
+          std::pair<int,double>& pp = iter->second;
+          pp.first++;
+        }
+        else {
+          uniq_structs.insert(make_pair(ensemble.substr(1),std::pair<int,double>(1,energy))); 
+        }
+        
+        // std::cout << ensemble.substr(1) << ' ' << energy << std::endl;
+	//data dump code starts here
+        std::stringstream ss;
+        ss<<ctFileDumpDir<<"/"<<seqname<<"_"<<count<<".ct";
+        save_ct_file(ss.str(), seq, energy, structure);
+        summaryoutfile<<ss.str()<<" "<<ensemble.substr(1)<<" "<<energy<< std::endl;
+	//data dump code ends here
+      }
+      //std::cout << nsamples << std::endl;
+      int pcount = 0;
+      int maxCount = 0; std::string bestStruct;
+      double bestE = INFINITY;
+
+      std::map<std::string,std::pair<int,double> >::iterator iter ;
+      for (iter = uniq_structs.begin(); iter != uniq_structs.end();  ++iter)
+      {
+        const std::string& ss = iter->first;
+        const std::pair<int,double>& pp = iter->second;
+        const double& estimated_p =  (double)pp.first/(double)num_rnd;
+        const double& energy = pp.second;
+        //double actual_p = pow(2.718281,-1.0*energy/RT_)/U;
+        double actual_p = pow(2.718281,-1.0*energy*100/RT)/U;
+
+        printf("%s %lf %lf %lf %d\n",ss.c_str(),energy,actual_p,estimated_p,pp.first);
+        pcount += pp.first;
+        if (pp.first > maxCount)
+        {
+          maxCount = pp.first;
+          bestStruct  = ss;
+          bestE = pp.second;
+        }
+      }
+      assert(num_rnd == pcount);
+      printf("\nMax frequency structure : \n%s e=%lf freq=%d p=%lf\n",bestStruct.c_str(),bestE,maxCount,(double)maxCount/(double)num_rnd);
+      
+    }
+	summaryoutfile.close();
 
 	  delete [] structure;
 }

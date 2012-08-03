@@ -20,8 +20,9 @@ extern int g_verbose;
 extern int g_prefilter_mode;
 extern int g_prefilter1;
 extern int g_prefilter2;
-
 extern unsigned int chPairKey;
+
+extern int SHAPE_ENABLED;//0 means false and 1 means true
 
 // The possible base pairs are (A,U), (U,A), (C,G), (G,C), (G,U) 
 //  and (U,G). 
@@ -44,6 +45,7 @@ void print_header() ;
 int read_sequence_file(const char* filename, std::string& seq);
 bool encodeSequence(string seq);
 void save_ct_file(string outputFile, string seq, int energy) ;
+void save_ct_file(string outputFile, string seq, int energy, int *structure1); 
 #endif
 
 void init_checkPair(); 

@@ -19,6 +19,8 @@ int g_prefilter_mode;
 int g_prefilter1;
 int g_prefilter2;
 
+int SHAPE_ENABLED = 0;
+
 void init_global_params(int len) {
 	RNA = (unsigned char *) malloc((len+1)* sizeof(unsigned char));
 	if (RNA == NULL) {
@@ -150,6 +152,20 @@ void save_ct_file(string outputFile, string seq, int energy) {
 		outfile << i << "\t" << seq[i-1] << "\t" << i-1 << "\t" << (i+1)%(seq.length()+1) << "\t" << structure[i] << "\t" << i << endl;
 
 	outfile.close();
+}
+
+void save_ct_file(string outputFile, string seq, int energy, int *structure1) {
+        ofstream outfile;
+        outfile.open(outputFile.c_str());
+
+        outfile << seq.length() << "\t  dG = " << energy/100.0 << endl;
+        //outfile << seq.length() << "\tdG = " << energy/100.0 << "\t" << seqfile << endl;
+
+        unsigned int i = 1;
+        for(i=1; i <= seq.length(); i++)
+                outfile << i << "\t" << seq[i-1] << "\t" << i-1 << "\t" << (i+1)%(seq.length()+1) << "\t" << structure1[i] << "\t" << i << endl;
+
+        outfile.close();
 }
 
 void init_checkPair() {
